@@ -7,8 +7,9 @@
 
 package net.avantic.diagnosticPlugin;
 
-import org.apache.cordova.api.PluginResult.Status;
+import org.apache.cordova.api.CallbackContext;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -19,40 +20,35 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
-import com.phonegap.api.Plugin;
-import com.phonegap.api.PluginResult;
 
-public class Diagnostic extends Plugin {
+public class Diagnostic extends org.apache.cordova.api.CordovaPlugin {
 
 	private static final String LOG_TAG = "Diagnostic";
 
-	
 	@Override
-	public PluginResult execute(String action, JSONArray args, String callbackId) {
+	public boolean execute(String action, JSONArray args, CallbackContext ctx) throws JSONException {
 		Log.d(LOG_TAG, "Executing Diagnostic Plugin");
 		if ("isLocationEnabled".equals(action))
-			return new PluginResult(Status.OK, isLocationEnabled());
-		else if ("switchToLocationSettings".equals(action)) {
+			ctx.success(isLocationEnabled() ? 1 : 0);
+		else if ("switchToLocationSettings".equals(action))
 			switchToLocationSettings();
-			return new PluginResult(Status.OK);
-		} else if ("isGpsEnabled".equals(action))
-			return new PluginResult(Status.OK, isGpsEnabled());
+		else if ("isGpsEnabled".equals(action))
+			ctx.success(isGpsEnabled() ? 1 : 0);
 		else if ("isWirelessNetworkLocationEnabled".equals(action))
-			return new PluginResult(Status.OK, isWirelessNetworkLocationEnabled());
+			ctx.success(isWirelessNetworkLocationEnabled() ? 1 : 0);
 		else if ("isWifiEnabled".equals(action))
-			return new PluginResult(Status.OK, isWifiEnabled());
-		else if ("switchToWifiSettings".equals(action)) {
+			ctx.success(isWifiEnabled() ? 1 : 0);
+		else if ("switchToWifiSettings".equals(action))
 			switchToWifiSettings();
-			return new PluginResult(Status.OK);
-		} else if ("isBluetoothEnabled".equals(action))
-			return new PluginResult(Status.OK, isBluetoothEnabled());
-		else if ("switchToBluetoothSettings".equals(action)) {
+		else if ("isBluetoothEnabled".equals(action))
+			ctx.success(isBluetoothEnabled() ? 1 : 0);
+		else if ("switchToBluetoothSettings".equals(action))
 			switchToBluetoothSettings();
-			return new PluginResult(Status.OK);
-		} else {
-			Log.d(LOG_TAG, "Invalid action");
-			return new PluginResult(Status.INVALID_ACTION);
+		else {
+			Log.d(LOG_TAG, "Invalid action " + action);
+			return false;
 		}
+		return true;
 	}
 
 	
@@ -73,7 +69,7 @@ public class Diagnostic extends Plugin {
 	public void switchToLocationSettings() {
 		Log.d(LOG_TAG, "Switch to Location Settings");
 		Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-		ctx.startActivity(settingsIntent);
+		cordova.getActivity().startActivity(settingsIntent);
 	}
 	
 	/**
@@ -101,7 +97,7 @@ public class Diagnostic extends Plugin {
 	}
 
 	private boolean isLocationProviderEnabled(String provider) {
-		LocationManager locationManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+		LocationManager locationManager = (LocationManager) cordova.getActivity().getSystemService(Context.LOCATION_SERVICE);
 		return locationManager.isProviderEnabled(provider);
 	}
 
@@ -111,7 +107,7 @@ public class Diagnostic extends Plugin {
 	 * @returns {boolean} The status of Wi-Fi in device settings.
 	 */
 	public boolean isWifiEnabled() {
-		WifiManager wifiManager = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) cordova.getActivity().getSystemService(Context.WIFI_SERVICE);
 		boolean result = wifiManager.isWifiEnabled();
 		Log.d(LOG_TAG, "Wifi enabled: " + result);
 		return result;
@@ -123,7 +119,7 @@ public class Diagnostic extends Plugin {
 	public void switchToWifiSettings() {
 		Log.d(LOG_TAG, "Switch to Wifi Settings");
 		Intent settingsIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-		ctx.startActivity(settingsIntent);
+		cordova.getActivity().startActivity(settingsIntent);
 	}
 	
 	/**
@@ -145,6 +141,6 @@ public class Diagnostic extends Plugin {
 	public void switchToBluetoothSettings() {
 		Log.d(LOG_TAG, "Switch to Bluetooth Settings");
 		Intent settingsIntent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-		ctx.startActivity(settingsIntent);
+		cordova.getActivity().startActivity(settingsIntent);
 	}
 }
